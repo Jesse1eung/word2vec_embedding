@@ -19,7 +19,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s', level=logging.DEBUG)
 
 
-vocabulary = read_data(FLAGS.text)
+vocabulary = read_data('./QuanSongCi.txt')
 print('Data size', len(vocabulary))
 
 
@@ -61,7 +61,7 @@ with tf.Session() as sess:
             feed_dict={model.X:batch,
                        model.Y:labels,
                        model.keep_prop:0.8,
-                       model._initial_state:state}
+                       model.tensor_state:state}
             
             
             gs, _, state, l, summary_string = sess.run(

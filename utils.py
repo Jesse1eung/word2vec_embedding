@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import collections
 import random
 
@@ -26,13 +25,23 @@ def index_data(sentences, dictionary):
 
     return index.reshape(shape)
 
-
+#vocalbulary 是read_data返回的data
 def get_train_data(vocabulary, batch_size, num_steps):
     ##################
     # Your Code here
     ##################
-
-
+    data,count,dictionary,reversed_dictionary=build_dataset(vocalbulary,5000)
+    drop=len(data)%batch_size
+    xraw = data[:-drop].reshape(batch_size,)
+    yraw = data[1:-drop+1].reshape(batch_size,)
+    
+    epoch=len(data)//batch_size//num_steps
+    for i in range(epoch):
+        batch = xraw[:,i*num_steps:i*num_steps(i+1)]
+        labels = yraw[:,i*num_steps:i*num_steps(i+1)]
+    return batch,labels
+    
+#words是data，n_words是len（data）
 def build_dataset(words, n_words):
     """Process raw inputs into a dataset."""
     count = [['UNK', -1]]

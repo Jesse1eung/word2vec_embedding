@@ -57,24 +57,47 @@ class Model():
 
             data = tf.nn.embedding_lookup(embed, self.X)
 
-        #with tf.variable_scope('rnn'):
+        with tf.variable_scope('rnn'):
             ##################
             # Your Code here
             ##################
+
+            lstm_cell = tf.contrib.rnn.BasicLSTMCell(self.dim_embedding,
+                                                forget_bias=0.0,
+                                                state_is_tuple=True)
+            lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell,
+                                                      input_keep_prob=1.0,
+                                                      output_keep_prob=self.keep_prob)
+
+            cell = tf.contrib.rnn.MultiRNNCell(
+                [lstm_cell] * self.rnn_layers,
+                state_is_tuple=True)
+
+            self.state_tensor = cell.zero_state(self.batch_size, tf.float32)
+
+            outputs_tensor, self.outputs_state_tensor = tf.nn.dynamic_rnn(cell, inputs=data,
+                                                                          initial_state=self.state_tensor,
+                                                                          time_major=False)
+
+        # concate every time step
+        seq_output = tf.concat(outputs_tensor, 1)
 
         # flatten it
         seq_output_final = tf.reshape(seq_output, [-1, self.dim_embedding])
 
-        #with tf.variable_scope('softmax'):
+        with tf.variable_scope('softmax'):
             ##################
             # Your Code here
             ##################
+            weight = tf.Variable(tf.truncated_normal([self.dim_embedding, self.num_words], stddev=0.1), dtype=tf.float32)
+            bias = tf.Variable(tf.constant(0.1, shape=[self.num_words]), dtype=tf.float32)
+            logits = tf.nn.bias_add(tf.matmul(seq_output_final, weight),bias=bias)
 
         tf.summary.histogram('logits', logits)
 
         self.predictions = tf.nn.softmax(logits, name='predictions')
 
-        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(self.Y, [-1])
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels=tf.reshape(self.Y, [-1]))
         mean, var = tf.nn.moments(logits, -1)
         self.loss = tf.reduce_mean(loss)
         tf.summary.scalar('logits_loss', self.loss)

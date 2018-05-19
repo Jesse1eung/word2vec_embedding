@@ -18,8 +18,12 @@ FLAGS, unparsed = parse_args()
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s', level=logging.DEBUG)
 
-
-vocabulary = read_data('./QuanSongCi.txt')
+def read_data1(filename):
+    with open(filename, encoding="utf-8") as f:
+        data = f.read()
+    data = list(data)
+    return data
+vocabulary = read_data1('./QuanSongCi.txt')
 print('Data size', len(vocabulary))
 
 

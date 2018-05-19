@@ -61,7 +61,16 @@ class Model():
             ##################
             # Your Code here
             ##################
-
+            lstm_cell = tf.contrib.rnn.BasicLSTMCell(self.dim_embedding,forget_bias=0.0,state_is_tuple=True)
+            if is_training and config.keep_prob < 1: # 在外面包裹一层dropout
+                lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
+                    lstm_cell, output_keep_prob=self.keep_prob)
+            cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * self.rnn_layers, state_is_tuple=True)
+            
+            self._initial_state  = cell.zero_state(self.batch_size, tf.float32)
+            outputs_tensor, self.outputs_state_tensor = tf.nn.dynamic_rnn(cell, inputs=data,initial_state=self._initial_state ,time_major=False)
+        
+        seq_output = tf.concat(outputs_tensor, 1)
         # flatten it
         seq_output_final = tf.reshape(seq_output, [-1, self.dim_embedding])
 
@@ -69,7 +78,10 @@ class Model():
             ##################
             # Your Code here
             ##################
-
+            softmax_w = tf.Variable(tf.truncated_normal([self.dim_embedding, self.num_words], stddev=0.1), dtype=tf.float32)
+            softmax_b = tf.Variable(tf.constant(0.1, shape=[self.num_words]), dtype=tf.float32)
+            logits = tf.nn.bias_add(tf.matmul(seq_output_final, softmax_w),bias=softmax_b)
+            
         tf.summary.histogram('logits', logits)
 
         self.predictions = tf.nn.softmax(logits, name='predictions')

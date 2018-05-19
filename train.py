@@ -61,7 +61,7 @@ with tf.Session() as sess:
             feed_dict={model.X:batch,
                        model.Y:labels,
                        model.keep_prop:0.8,
-                       model.state_tensor:state}
+                       model._initial_state:state}
             
             
             gs, _, state, l, summary_string = sess.run(
